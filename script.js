@@ -1,76 +1,75 @@
-// your JS code here.
+// your JS code here
 
-// Store references
 const questionsElement = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
 const scoreElement = document.getElementById("score");
 
-// Load saved progress from sessionStorage
+// Load saved progress
 let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
 
-// Load saved score from localStorage (if any)
+// Load saved score if any
 const savedScore = localStorage.getItem("score");
 if (savedScore !== null) {
   scoreElement.innerText = `Your score is ${savedScore} out of ${questions.length}.`;
 }
 
-// Display the quiz questions and choices
+// Render questions
 function renderQuestions() {
-  questionsElement.innerHTML = ""; // clear before re-render
+  questionsElement.innerHTML = ""; // clear before render
+
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
-    const questionElement = document.createElement("div");
+
+    // Each question in its own <div> (Cypress requires this)
+    const questionDiv = document.createElement("div");
 
     // Question text
-    const questionText = document.createElement("p");
-    questionText.innerText = question.question;
-    questionElement.appendChild(questionText);
+    const qText = document.createElement("p");
+    qText.innerText = question.question;
+    questionDiv.appendChild(qText);
 
-    // Choices
+    // Options
     for (let j = 0; j < question.choices.length; j++) {
       const choice = question.choices[j];
 
-      const choiceElement = document.createElement("input");
-      choiceElement.setAttribute("type", "radio");
-      choiceElement.setAttribute("name", `question-${i}`);
-      choiceElement.setAttribute("value", choice);
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `question-${i}`;
+      input.value = choice;
 
-      // If user previously answered, mark as checked
+      // restore selection if saved in sessionStorage
       if (userAnswers[i] === choice) {
-        choiceElement.checked = true;
+        input.setAttribute("checked", "true"); // attribute (Cypress expects this)
+        input.checked = true; // UI state
       }
 
-      // Save progress when selected
-      choiceElement.addEventListener("change", function () {
+      // on change, update sessionStorage
+      input.addEventListener("change", () => {
         userAnswers[i] = choice;
         sessionStorage.setItem("progress", JSON.stringify(userAnswers));
       });
 
-      // Label for better UI
+      // add label text
       const label = document.createElement("label");
       label.innerText = choice;
 
-      questionElement.appendChild(choiceElement);
-      questionElement.appendChild(label);
+      questionDiv.appendChild(input);
+      questionDiv.appendChild(label);
     }
 
-    questionsElement.appendChild(questionElement);
+    questionsElement.appendChild(questionDiv);
   }
 }
 
-// Handle quiz submission
-submitBtn.addEventListener("click", function () {
+// Handle submit
+submitBtn.addEventListener("click", () => {
   let score = 0;
   for (let i = 0; i < questions.length; i++) {
     if (userAnswers[i] === questions[i].answer) {
       score++;
     }
   }
-
-  // Display score
   scoreElement.innerText = `Your score is ${score} out of ${questions.length}.`;
-
-  // Save score in localStorage
   localStorage.setItem("score", score);
 });
 
